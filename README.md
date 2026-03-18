@@ -97,11 +97,69 @@ chmod 644 /etc/norypt/*.db /etc/config/norypt
 chmod 644 /www/norypt/*
 ```
 
-**Step 4:** Install dependencies (requires internet on router, or pre-download the ipk files):
+**Step 4:** Install dependencies
+
+**Option A — Online (router has internet):**
 
 ```sh
 opkg update
 opkg install uqmi bash coreutils-shuf
+```
+
+**Option B — Offline (no internet on router):**
+
+The GL-XE3000 uses architecture `aarch64_cortex-a53`. Download the following `.ipk` files on a PC with internet access, then copy them to the router.
+
+**Download on your PC** from the OpenWrt package repository:
+
+Go to `https://openwrt.org/packages/pkgdata/` and search for each package, selecting architecture `aarch64_cortex-a53`. Or use the direct index for your firmware version:
+
+```
+https://downloads.openwrt.org/releases/<version>/packages/aarch64_cortex-a53/
+```
+
+Replace `<version>` with the OpenWrt base version your GL-iNet firmware uses (e.g. `23.05.3`). You can check it on the router with:
+
+```sh
+cat /etc/openwrt_release | grep DISTRIB_RELEASE
+```
+
+**Packages to download** (get the latest version of each):
+
+| Package | Feed |
+|---------|------|
+| `uqmi_*.ipk` | `base` |
+| `bash_*.ipk` | `base` |
+| `coreutils-shuf_*.ipk` | `base` |
+
+Also download any missing dependencies for each package. `opkg` will tell you what is missing when you install.
+
+**Copy the .ipk files to the router:**
+
+```sh
+scp uqmi_*.ipk bash_*.ipk coreutils-shuf_*.ipk root@192.168.8.1:/tmp/
+```
+
+**SSH in and install:**
+
+```sh
+ssh root@192.168.8.1
+cd /tmp
+opkg install --force-reinstall uqmi_*.ipk bash_*.ipk coreutils-shuf_*.ipk
+```
+
+If opkg reports missing dependencies, download and install those `.ipk` files the same way first.
+
+**Alternative — download directly on the router using a USB drive or tethered phone:**
+
+If you have brief internet access (even via phone USB tethering), you can use `opkg download` to save the packages without installing them yet:
+
+```sh
+mkdir -p /tmp/norypt-deps
+cd /tmp/norypt-deps
+opkg update
+opkg download uqmi bash coreutils-shuf
+# Copy /tmp/norypt-deps/*.ipk to a USB drive for later offline installs
 ```
 
 **Step 5:** Enable and start the service:
