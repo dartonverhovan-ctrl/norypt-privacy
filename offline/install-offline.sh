@@ -30,22 +30,24 @@ if [ ! -d "${DEPS_DIR}" ]; then
   exit 1
 fi
 
-for ipk in \
-  libubox20230523_*.ipk \
-  libblobmsg-json20230523_*.ipk \
-  libncurses6_*.ipk \
-  libreadline8_*.ipk \
-  wwan_*.ipk \
-  coreutils_*.ipk \
-  coreutils-shuf_*.ipk \
-  bash_*.ipk \
-  uqmi_*.ipk; do
+for pkgname in \
+  libubox20230523 \
+  libblobmsg-json20230523 \
+  libncurses6 \
+  libreadline8 \
+  wwan \
+  coreutils \
+  coreutils-shuf \
+  bash \
+  uqmi; do
 
-  filepath="${DEPS_DIR}/${ipk}"
-  # expand glob — skip if no match
-  [ -f "${filepath}" ] || { echo "  WARNING: ${ipk} not found in deps/ — skipping"; continue; }
+  # find the versioned .ipk in deps/ by package name prefix
+  filepath=$(ls "${DEPS_DIR}/${pkgname}_"*.ipk 2>/dev/null | head -1)
+  if [ -z "${filepath}" ] || [ ! -f "${filepath}" ]; then
+    echo "  WARNING: ${pkgname} not found in deps/ — skipping"
+    continue
+  fi
 
-  pkgname=$(echo "${ipk}" | cut -d_ -f1)
   if opkg list-installed 2>/dev/null | grep -q "^${pkgname} "; then
     echo "  already installed: ${pkgname}"
   else
@@ -61,11 +63,11 @@ echo "[2/5] Installing NORYPT modules..."
 
 mkdir -p "${MODULES}" "${WWW}" "${CGI}"
 
-SRC="${SCRIPT_DIR}/src"
+SRC="${SCRIPT_DIR}/../src"
 
 if [ ! -d "${SRC}" ]; then
   echo "ERROR: src/ folder not found at ${SRC}"
-  echo "Make sure you copied the full norypt-privacy folder, not just offline/."
+  echo "Make sure you copied the full norypt-privacy folder, not just the offline/ subfolder."
   exit 1
 fi
 
@@ -87,13 +89,18 @@ done
 echo ""
 echo "[3/5] Installing service files..."
 
-cp "${SRC}/init.d/norypt"         /etc/init.d/norypt          && chmod 755 /etc/init.d/norypt
-cp "${SRC}/uci-defaults/99-norypt" /etc/uci-defaults/99-norypt && chmod 755 /etc/uci-defaults/99-norypt
-cp "${SRC}/bin/norypt"            /usr/bin/norypt              && chmod 755 /usr/bin/norypt
-cp "${SRC}/cgi-bin/norypt.cgi"   "${CGI}/norypt.cgi"          && chmod 755 "${CGI}/norypt.cgi"
+cp "${SRC}/init.d/norypt"          /etc/init.d/norypt
+chmod 755 /etc/init.d/norypt
+cp "${SRC}/uci-defaults/99-norypt" /etc/uci-defaults/99-norypt
+chmod 755 /etc/uci-defaults/99-norypt
+cp "${SRC}/bin/norypt"             /usr/bin/norypt
+chmod 755 /usr/bin/norypt
+cp "${SRC}/cgi-bin/norypt.cgi"     "${CGI}/norypt.cgi"
+chmod 755 "${CGI}/norypt.cgi"
 
 if [ ! -f /etc/config/norypt ]; then
-  cp "${SRC}/config/norypt" /etc/config/norypt && chmod 644 /etc/config/norypt
+  cp "${SRC}/config/norypt" /etc/config/norypt
+  chmod 644 /etc/config/norypt
 fi
 
 # ── 4. Install web panel ─────────────────────────────────────────────────────
