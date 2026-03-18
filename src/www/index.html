@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="norypt-token" content="__CSRF_TOKEN__">
+<title>NORYPT Privacy</title>
+<link rel="stylesheet" href="/norypt/style.css">
+</head>
+<body>
+<header>
+  <h1>NORYPT PRIVACY</h1>
+  <span id="cellular-status"><span class="dot dot-r"></span>Loading...</span>
+</header>
+<main>
+  <div class="card">
+    <div class="card-header">
+      Current Identities
+      <button class="btn btn-p" data-action="randomize">&#8635; Randomize All</button>
+    </div>
+    <div class="card-body">
+      <div class="id-row"><span class="id-label">IMEI</span><span class="id-value" id="val-imei">Loading...</span></div>
+      <div class="id-row"><span class="id-label">BSSID 2G</span><span class="id-value" id="val-bssid-2g">&#8212;</span></div>
+      <div class="id-row"><span class="id-label">BSSID 5G</span><span class="id-value" id="val-bssid-5g">&#8212;</span></div>
+      <div class="id-row"><span class="id-label">WAN MAC</span><span class="id-value" id="val-wan-mac">&#8212;</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Feature Toggles</div>
+    <div class="card-body"><div class="toggles">
+      <div class="toggle-row"><span>IMEI Randomization</span><label class="switch"><input type="checkbox" data-cfg="randomize_imei" checked><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>BSSID Randomization</span><label class="switch"><input type="checkbox" data-cfg="randomize_bssid" checked><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>WAN MAC Randomization</span><label class="switch"><input type="checkbox" data-cfg="randomize_wan" checked><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Log Wipe on Boot</span><label class="switch"><input type="checkbox" data-cfg="wipe_logs" checked><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Run on Every Boot</span><label class="switch"><input type="checkbox" data-cfg="on_boot" checked><span class="slider"></span></label></div>
+    </div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Manual Controls</div>
+    <div class="card-body controls">
+      <button class="btn" data-action="randomize_imei">&#8635; IMEI</button>
+      <button class="btn" data-action="randomize_mac">&#8635; BSSIDs</button>
+      <button class="btn" data-action="randomize_wan">&#8635; WAN MAC</button>
+      <button class="btn" data-action="wipe_logs">&#x1F9F9; Wipe Logs</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Last 10 Events</div>
+    <div class="card-body" id="history-list"><p class="muted">Loading...</p></div>
+  </div>
+</main>
+<script src="/norypt/app.js"></script>
+</body>
+</html>

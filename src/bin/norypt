@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VERSION="1.0.0"
+MODULES_DIR="${NORYPT_MODULES_DIR:-/etc/norypt}"
+CONFIG=norypt
+
+_cfg()     { uci -q get "${CONFIG}.settings.$1" 2>/dev/null || echo ""; }
+_cfg_set() { uci set "${CONFIG}.settings.$1=$2" && uci commit "${CONFIG}"; }
+
+usage() {
+  cat << 'EOF'
+Usage: norypt <command> [args]
+
+  status                       Show IMEI, MACs, cellular, config
+  randomize [imei|bssid|wan|all]  Randomize identities (default: all)
+  wipe-logs                    Wipe all system log locations
+  config show                  Dump current config
+  config set <key> <on|off>    Toggle a feature
+  service <start|stop|restart|status>
+  version                      Show version and firmware
+  help                         Show this message
+EOF
+}
+
+cmd_status() {
+  echo "=== NORYPT Privacy v${VERSION} ==="
+  # shellcheck source=/dev/null
+  source "${MODULES_DIR}/detect_fw.sh" 2>/dev/null || true
+  echo "Firmware:  ${FW_VERSION:-unknown}"
+  # shellcheck disable=SC2312
+  echo "IMEI:      $(uqmi -d "${IF_CDC:-/dev/cdc-wdm0}" --get-imei 2>/dev/null || echo 'unavailable')"
+  # shellcheck disable=SC2312
+  echo "BSSID 2G:  $(ip link show "${IF_WIFI_2G:-wlan0}" 2>/dev/null | awk '/ether/{print $2}' || echo 'unavailable')"
+  # shellcheck disable=SC2312
+  echo "BSSID 5G:  $(ip link show "${IF_WIFI_5G:-wlan1}" 2>/dev/null | awk '/ether/{print $2}' || echo 'unavailable')"
+  # shellcheck disable=SC2312
+  echo "WAN MAC:   $(ip link show "${IF_WAN:-eth0}"      2>/dev/null | awk '/ether/{print $2}' || echo 'unavailable')"
+  printf '\nFeatures:\n'
+  # shellcheck disable=SC2312
+  echo "  IMEI randomization:    $(_cfg randomize_imei)"
+  # shellcheck disable=SC2312
+  echo "  BSSID randomization:   $(_cfg randomize_bssid)"
+  # shellcheck disable=SC2312
+  echo "  WAN MAC randomization: $(_cfg randomize_wan)"
+  # shellcheck disable=SC2312
+  echo "  Log wipe on boot:      $(_cfg wipe_logs)"
+  # shellcheck disable=SC2312
+  echo "  Run on boot:           $(_cfg on_boot)"
+}
+
+cmd_randomize() {
+  case "${1:-all}" in
+    imei)  bash "${MODULES_DIR}/imei-random.sh" ;;
+    bssid) bash "${MODULES_DIR}/mac-random.sh" ;;
+    wan)   bash "${MODULES_DIR}/wan-mac.sh" ;;
+    all)   bash "${MODULES_DIR}/run.sh" ;;
+    *)     echo "Unknown target: $1"; exit 1 ;;
+  esac
+}
+
+cmd_config() {
+  case "${1:-show}" in
+    show) uci show "${CONFIG}" ;;
+    set)
+      local val="$3"
+      [[ "${val}" = "on" ]]  && val=1
+      [[ "${val}" = "off" ]] && val=0
+      _cfg_set "$2" "${val}"
+      echo "Set $2=${val}"
+      ;;
+    *) echo "Usage: norypt config show|set <key> <on|off>"; exit 1 ;;
+  esac
+}
+
+main() {
+  local cmd="${1:-help}"
+  shift 2>/dev/null || true
+  case "${cmd}" in
+    status)    cmd_status ;;
+    randomize) cmd_randomize "$@" ;;
+    wipe-logs) bash "${MODULES_DIR}/log-wipe.sh" ;;
+    config)    cmd_config "$@" ;;
+    service)   /etc/init.d/norypt "${1:-status}" ;;
+    version)
+      # shellcheck source=/dev/null
+      source "${MODULES_DIR}/detect_fw.sh" 2>/dev/null || true
+      echo "norypt-privacy v${VERSION} (fw: ${FW_VERSION:-unknown})"
+      ;;
+    help|--help|-h) usage ;;
+    *) echo "Unknown command: ${cmd}"; usage; exit 1 ;;
+  esac
+}
+
+main "$@"

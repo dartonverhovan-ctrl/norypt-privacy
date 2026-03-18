@@ -1,0 +1,18 @@
+#!/bin/sh
+/etc/init.d/norypt enable
+/etc/init.d/norypt start
+
+# Apply uhttpd redirect for CSRF-injected panel — idempotent
+# Guard: skip entirely if uhttpd UCI package absent (nginx-only setups)
+if uci show uhttpd >/dev/null 2>&1; then
+  if ! uci show uhttpd 2>/dev/null | grep -q "norypt_redirect"; then
+    uci add uhttpd redirect > /dev/null
+    uci set uhttpd.@redirect[-1].name='norypt_redirect'
+    uci set uhttpd.@redirect[-1].from='/norypt/'
+    uci set uhttpd.@redirect[-1].to='/cgi-bin/norypt.cgi?action=serve_index'
+    uci commit uhttpd
+  fi
+  /etc/init.d/uhttpd restart 2>/dev/null || true
+fi
+
+rm -f /etc/uci-defaults/99-norypt
