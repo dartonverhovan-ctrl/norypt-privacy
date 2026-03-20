@@ -61,7 +61,7 @@ _serve_index() {
   session_id=$(echo "${HTTP_COOKIE:-}" | grep -oE 'sysauth=[^;]+' | cut -d= -f2 | tr -dc 'a-zA-Z0-9' || true)
   token_file="/tmp/norypt_csrf_${session_id}"
   if [[ ! -f "${token_file}" ]]; then
-    token=$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')
+    token=$(cat /proc/sys/kernel/random/uuid | tr -d '-')
     printf '%s' "${token}" > "${token_file}"
   else
     token=$(cat "${token_file}")
