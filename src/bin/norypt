@@ -23,13 +23,28 @@ Usage: norypt <command> [args]
 EOF
 }
 
+_read_imei() {
+  local port="${MODEM_PORT:-}"
+  [[ -z "${port}" ]] && { echo "unavailable"; return; }
+  [[ -e "${port}" ]] || { echo "unavailable"; return; }
+  stty -F "${port}" 115200 raw -echo 2>/dev/null || true
+  # Drain any buffered responses from GL-iNet's modem manager
+  timeout 1 head -c 512 "${port}" 2>/dev/null || true
+  # Query IMEI
+  printf 'AT+EGMR=0,7\r' > "${port}"
+  sleep 0.4
+  local resp
+  resp=$(timeout 1 head -c 128 "${port}" 2>/dev/null || true)
+  echo "${resp}" | grep -oE '[0-9]{15}' | head -1 || echo "unavailable"
+}
+
 cmd_status() {
   echo "=== NORYPT Privacy v${VERSION} ==="
   # shellcheck source=/dev/null
   source "${MODULES_DIR}/detect_fw.sh" 2>/dev/null || true
   echo "Firmware:  ${FW_VERSION:-unknown}"
   # shellcheck disable=SC2312
-  echo "IMEI:      $(uqmi -d "${IF_CDC:-/dev/cdc-wdm0}" --get-imei 2>/dev/null || echo 'unavailable')"
+  echo "IMEI:      $(_read_imei)"
   # shellcheck disable=SC2312
   echo "BSSID 2G:  $(ip link show "${IF_WIFI_2G:-wlan0}" 2>/dev/null | awk '/ether/{print $2}' || echo 'unavailable')"
   # shellcheck disable=SC2312

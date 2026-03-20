@@ -34,9 +34,11 @@ _at() {
     local response
     # Open port once for both write and read using a file descriptor
     exec 3<>"${MODEM_PORT}"
+    # Drain buffered responses from GL-iNet's modem manager before sending
+    timeout 1 head -c 512 <&3 2>/dev/null || true
     printf 'AT%s\r' "${cmd}" >&3
-    sleep 0.3
-    response=$(head -c 256 <&3)
+    sleep 0.4
+    response=$(timeout 1 head -c 256 <&3 2>/dev/null || true)
     exec 3>&-
     echo "${response}"
   fi
