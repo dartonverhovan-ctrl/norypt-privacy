@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=/dev/null
 source "${SCRIPT_DIR}/luhn.sh"
 
-TAC_DB="${TAC_DB:-${SCRIPT_DIR}/../db/tac.db}"
+TAC_DB="${TAC_DB:-${SCRIPT_DIR}/tac.db}"
 MODEM_PORT="${MODEM_PORT:-}"
 AT_RETRIES=3
 MODEM_WAIT=15

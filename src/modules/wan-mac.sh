@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=/dev/null
 source "${SCRIPT_DIR}/random_mac.sh"
 
-WAN_DB="${WAN_DB:-${SCRIPT_DIR}/../db/oui-wan.db}"
+WAN_DB="${WAN_DB:-${SCRIPT_DIR}/oui-wan.db}"
 IF_WAN="${IF_WAN:-eth0}"
 BOOT_MODE=0
 [[ "${1:-}" = "--boot" ]] && BOOT_MODE=1

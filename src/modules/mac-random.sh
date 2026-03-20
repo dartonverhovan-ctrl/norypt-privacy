@@ -7,7 +7,7 @@ source "${SCRIPT_DIR}/random_mac.sh"
 # shellcheck source=/dev/null
 source "${SCRIPT_DIR}/detect_fw.sh"
 
-WIFI_DB="${WIFI_DB:-${SCRIPT_DIR}/../db/oui-wifi.db}"
+WIFI_DB="${WIFI_DB:-${SCRIPT_DIR}/oui-wifi.db}"
 # IF_WIFI_2G / IF_WIFI_5G now auto-detected by detect_fw.sh (ra0/wlan0/ath0)
 IF_WIFI_2G="${IF_WIFI_2G:-wlan0}"
 IF_WIFI_5G="${IF_WIFI_5G:-wlan1}"
