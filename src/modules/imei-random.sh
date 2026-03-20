@@ -14,11 +14,13 @@ _log() { logger -t norypt "imei: $*" 2>/dev/null || echo "norypt imei: $*" >&2; 
 
 _wait_for_modem() {
   [[ -n "${NORYPT_TEST:-}" ]] && return 0
+  # GL-iNet ubus AT daemon: modem accessible without holding the physical port
+  ubus list AT >/dev/null 2>&1 && return 0
   for _ in $(seq 1 "${MODEM_WAIT}"); do
     [[ -e "${MODEM_PORT}" ]] && return 0
     sleep 1
   done
-  _log "modem port ${MODEM_PORT} not found after ${MODEM_WAIT}s — skipping IMEI"
+  _log "modem not accessible after ${MODEM_WAIT}s — skipping IMEI"
   return 1
 }
 
