@@ -4,15 +4,17 @@ set -euo pipefail
 MODULES_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONFIG=norypt
 
+# --boot: called from init.d at boot; reconnects cellular + settle delay
+# (no flag): called on-demand (panel, CLI) — skip cellular to avoid 60s hang
+BOOT_MODE=0
+[[ "${1:-}" = "--boot" ]] && BOOT_MODE=1
+
 # Default "0" — config file ships with all features on; absent config = safe off
 _cfg() { uci -q get "${CONFIG}.settings.$1" 2>/dev/null || echo "0"; }
 
 # Respect enabled gate whether called from init.d or CLI
 _enabled=$(_cfg enabled)
 if [[ "${_enabled}" != "1" ]]; then exit 0; fi
-
-SETTLE_DELAY=$(_cfg settle_delay)
-if [[ -z "${SETTLE_DELAY}" ]]; then SETTLE_DELAY=3; fi
 
 # shellcheck source=/dev/null
 source "${MODULES_DIR}/detect_fw.sh"
@@ -27,6 +29,9 @@ if [[ "${_cfg_randomize_bssid}" = "1" ]]; then bash "${MODULES_DIR}/mac-random.s
 _cfg_randomize_wan=$(_cfg randomize_wan)
 if [[ "${_cfg_randomize_wan}" = "1" ]]; then bash "${MODULES_DIR}/wan-mac.sh" --boot; fi
 
-sleep "${SETTLE_DELAY}"
-
-bash "${MODULES_DIR}/cellular.sh"
+if [[ "${BOOT_MODE}" -eq 1 ]]; then
+  SETTLE_DELAY=$(_cfg settle_delay)
+  if [[ -z "${SETTLE_DELAY}" ]]; then SETTLE_DELAY=3; fi
+  sleep "${SETTLE_DELAY}"
+  bash "${MODULES_DIR}/cellular.sh"
+fi
