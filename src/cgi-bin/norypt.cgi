@@ -34,7 +34,9 @@ _kv_status() {
   # shellcheck source=/dev/null
   source "${MODULES_DIR}/detect_fw.sh" 2>/dev/null || true
   local imei bssid_2g bssid_5g wan_mac cellular
-  imei=$(uqmi -d "${IF_CDC:-/dev/cdc-wdm0}" --get-imei 2>/dev/null || echo "unavailable")
+  # Use GL-iNet ubus AT daemon (avoids port contention; works with PCIe MHI modems)
+  imei=$(ubus call AT get_result '{"cmd":"AT+EGMR=0,7","timeout":3000}' 2>/dev/null \
+    | grep -oE '[0-9]{15}' | head -1 || echo "unavailable")
   bssid_2g=$(ip link show "${IF_WIFI_2G:-wlan0}" 2>/dev/null | awk '/ether/{print $2}' || echo "unavailable")
   bssid_5g=$(ip link show "${IF_WIFI_5G:-wlan1}" 2>/dev/null | awk '/ether/{print $2}' || echo "unavailable")
   wan_mac=$(ip link show "${IF_WAN:-eth0}"       2>/dev/null | awk '/ether/{print $2}' || echo "unavailable")
