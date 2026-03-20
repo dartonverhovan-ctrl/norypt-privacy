@@ -8,7 +8,8 @@ _log() { logger -t norypt "wipe: $*" 2>/dev/null || true; }
 
 _wipe_dir() {
   local dir="$1"
-  [[ -d "${dir}" ]] && find "${dir}" -maxdepth 1 -type f -delete
+  # BusyBox find has no -delete; use -exec rm instead
+  [[ -d "${dir}" ]] && find "${dir}" -maxdepth 1 -type f -exec rm -f {} \;
 }
 
 main() {
