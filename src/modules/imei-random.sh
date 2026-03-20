@@ -47,8 +47,7 @@ _generate_imei() {
   local tac
   tac=$(shuf -n1 "${TAC_DB}")
   local serial
-  serial=$(od -An -N3 -tu1 /dev/urandom | \
-           awk '{printf "%06d", ($1*65536+$2*256+$3) % 1000000}')
+  serial=$(cat /proc/sys/kernel/random/uuid | tr -dc '0-9' | head -c 6)
   local prefix="${tac}${serial}"
   local check
   check=$(luhn_digit "${prefix}")

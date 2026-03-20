@@ -25,7 +25,8 @@ IF_WWAN="${IF_WWAN_OVERRIDE:-wwan0}"
 IF_CDC="${IF_CDC_OVERRIDE:-/dev/cdc-wdm0}"
 
 _resolve_modem_port() {
-  for port in /dev/ttyUSB2 /dev/ttyUSB1 /dev/ttyUSB0 /dev/ttyUSB3; do
+  # PCIe MHI modem (GL-XE3000 built-in Quectel EM060K) exposes AT via mhi_DUN
+  for port in /dev/mhi_DUN /dev/ttyUSB2 /dev/ttyUSB1 /dev/ttyUSB0 /dev/ttyUSB3; do
     [[ -e "${port}" ]] && echo "${port}" && return
   done
   echo ""
