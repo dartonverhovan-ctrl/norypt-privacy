@@ -13,7 +13,7 @@ rm -f  /etc/config/norypt /etc/uci-defaults/99-norypt
 
 echo "Removing web server config..."
 # uhttpd redirect
-_norypt_sec=$(uci show uhttpd 2>/dev/null | grep "\.name='norypt_redirect'" | cut -d. -f1-2)
+_norypt_sec=$(uci show uhttpd 2>/dev/null | grep "\.name='norypt_redirect'" | cut -d. -f1-2 || true)
 if [ -n "${_norypt_sec}" ]; then
   uci delete "${_norypt_sec}"
   uci commit uhttpd
